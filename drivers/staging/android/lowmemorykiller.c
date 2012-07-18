@@ -167,7 +167,6 @@ static int lowmem_shrink(struct shrinker *s, int nr_to_scan, gfp_t gfp_mask)
 			     p->pid, p->comm, oom_adj, tasksize);
 	}
 	if (selected) {
-	if (selected) {
 		if (fatal_signal_pending(selected)) {
 			pr_warning("process %d is suffering a slow death\n",
 				   selected->pid);
