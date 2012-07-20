@@ -1142,7 +1142,7 @@ static void drop_other_mm_ref(void *info)
 
 	active_mm = percpu_read(cpu_tlbstate.active_mm);
 
-	if (active_mm == mm)
+	if (active_mm == mm && percpu_read(cpu_tlbstate.state) != TLBSTATE_OK)
 		leave_mm(smp_processor_id());
 
 	/* If this cpu still has a stale cr3 reference, then make sure
@@ -1644,6 +1644,11 @@ static __init void xen_map_identity_early(pmd_t *pmd, unsigned long max_pfn)
 			if (pfn > max_pfn_mapped)
 				max_pfn_mapped = pfn;
 
+#ifdef CONFIG_X86_32
+			if (pfn > max_pfn_mapped)
+				max_pfn_mapped = pfn;
+#endif
+
 			if (!pte_none(pte_page[pteidx]))
 				continue;
 
@@ -1753,9 +1758,9 @@ __init pgd_t *xen_setup_kernel_pagetable(pgd_t *pgd,
 	max_pfn_mapped = PFN_DOWN(__pa(xen_start_info->pt_base) +
 				  xen_start_info->nr_pt_frames * PAGE_SIZE +
 				  512*1024);
-
-	kernel_pmd = m2v(pgd[KERNEL_PGD_BOUNDARY].pgd);
-	memcpy(level2_kernel_pgt, kernel_pmd, sizeof(pmd_t) * PTRS_PER_PMD);
+ 
+ 	kernel_pmd = m2v(pgd[KERNEL_PGD_BOUNDARY].pgd);
+ 	memcpy(level2_kernel_pgt, kernel_pmd, sizeof(pmd_t) * PTRS_PER_PMD);
 
 	xen_map_identity_early(level2_kernel_pgt, max_pfn);
 
